@@ -86,14 +86,21 @@ function App() {
     fetchSussexStreetCrimeData();
     fetchNorfolkStreetCrimeData();
     fetchYorkshireStreetCrimeData();
+
   }, []);
 
+  // merge individual location data for master table
   if (walesCrime && sussexCrime && norfolkCrime && yorkshireCrime) {
     allCrime = [...walesCrime, ...sussexCrime, ...norfolkCrime, ...yorkshireCrime];
   }
-
+    
   return (
     <div className="App">
+      {/* <input
+          type="text"
+          value={ filterStr }
+          onChange={ e => this.setState({ filterStr: e.target.value }) } /> */}
+
       <StreetCrimeTable streetCrimeData={allCrime}></StreetCrimeTable>
     </div>
   );
@@ -101,6 +108,7 @@ function App() {
 
 
 function StreetCrimeTable({streetCrimeData}) {
+  console.log(streetCrimeData)
   if (streetCrimeData) {
     return (
       <table>
@@ -119,7 +127,7 @@ function StreetCrimeTable({streetCrimeData}) {
               <td>{item.office}</td>
               <td>{item.category}</td>
               <td>{item.location.street.name}</td>
-              <td>{item.outcomeStatus}</td>
+              <td>{item.outcome_status ? item.outcome_status.category : "N/A"}</td>
               <td>{item.month}</td>
             </tr>
           ))}
