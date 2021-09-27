@@ -11,6 +11,8 @@ function App() {
   const [norfolkCrime, setNorfolkCrime] = useState(null);
   const [yorkshireCrime, setYorkshireCrime] = useState(null);
 
+  let allCrime = [];
+
   // assuming here that the default view should show all area data, which can then be filtered on
   // TODO: ideally this would be paginated to reduce initial loading time
   // TODO: refactor with custom fetch hook to reduce repetitive code
@@ -61,21 +63,50 @@ function App() {
     fetchYorkshireStreetCrimeData();
   }, []);
 
-  console.log(walesCrime);
-  console.log(sussexCrime);
-  console.log(norfolkCrime);
-  console.log(yorkshireCrime);
-  
+  if (walesCrime && sussexCrime && norfolkCrime && yorkshireCrime) {
+    allCrime = [...walesCrime, ...sussexCrime, ...norfolkCrime, ...yorkshireCrime];
+  }
 
   return (
     <div className="App">
-      <StreetCrimeData></StreetCrimeData>
+      <StreetCrimeTable streetCrimeData={allCrime}></StreetCrimeTable>
     </div>
   );
 }
 
-function StreetCrimeData() {
 
+function StreetCrimeTable({streetCrimeData}) { 
+  console.log(streetCrimeData);
+  if (streetCrimeData) {
+    return (
+      <table>
+        <thead>
+          <tr>
+            <th>Office</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Outcome</th>
+            <th>Month</th>
+          </tr>
+        </thead>
+        <tbody>
+          {streetCrimeData.map(item => (
+            <tr>
+              <td>{item.location.latitude}</td>
+              <td>{item.category}</td>
+              <td>{item.location.street.name}</td>
+              <td>{item.outcomeStatus}</td>
+              <td>{item.month}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  } else {
+    return (
+      <div>No table data found</div>
+    )
+  }
 }
 
 
