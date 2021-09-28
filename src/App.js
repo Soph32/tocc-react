@@ -15,9 +15,10 @@ function App() {
 
   // assuming here that the default view should show all area data, which can then be filtered on
   // TODO: ideally this would be paginated to reduce initial loading time
-  // TODO: refactor with custom fetch hook to reduce repetitive code
+  // TODO: refactor with custom fetch hook to reduce repetitive code - or promise all?
   // TODO: is there a way of pulling only the fields we need from the json so less data is stored here?
   useEffect(() => {
+    // grabs all street crime data on component mount
     const fetchWalesStreetCrimeData = async() => {
       try {
         const response = await fetch(streetCrimesEndpoint + "?lat=52.515249&lng=-3.316378");
@@ -94,13 +95,20 @@ function App() {
     allCrime = [...walesCrime, ...sussexCrime, ...norfolkCrime, ...yorkshireCrime];
   }
     
+  // only possible to filter on dates that actually exist
+  // function dateOptions() {
+  //   let dates = [];
+    
+  //   allCrime.forEach(item => {
+  //     dates.push(item.date);
+  //   });
+
+  //   let uniqeDates = [...new Set(dates)];
+  //   return uniqeDates;
+  // };
+
   return (
     <div className="App">
-      {/* <input
-          type="text"
-          value={ filterStr }
-          onChange={ e => this.setState({ filterStr: e.target.value }) } /> */}
-
       <StreetCrimeTable streetCrimeData={allCrime}></StreetCrimeTable>
     </div>
   );
@@ -108,7 +116,6 @@ function App() {
 
 
 function StreetCrimeTable({streetCrimeData}) {
-  console.log(streetCrimeData)
   if (streetCrimeData) {
     return (
       <table>
@@ -121,17 +128,7 @@ function StreetCrimeTable({streetCrimeData}) {
             <th>Month</th>
           </tr>
         </thead>
-        <tbody>
-          {streetCrimeData.map(item => (
-            <tr key={item.id}>
-              <td>{item.office}</td>
-              <td>{item.category}</td>
-              <td>{item.location.street.name}</td>
-              <td>{item.outcome_status ? item.outcome_status.category : "N/A"}</td>
-              <td>{item.month}</td>
-            </tr>
-          ))}
-        </tbody>
+        <TableRow data={streetCrimeData}></TableRow>
       </table>
     )
   } else {
@@ -139,6 +136,22 @@ function StreetCrimeTable({streetCrimeData}) {
       <div>No table data found</div>
     )
   }
+}
+
+function TableRow({data}) {
+  return (
+    <tbody>
+      {data.map(item => (
+          <tr key={item.id}>
+            <td>{item.office}</td>
+            <td>{item.category}</td>
+            <td>{item.location.street.name}</td>
+            <td>{item.outcome_status ? item.outcome_status.category : "N/A"}</td>
+            <td>{item.month}</td>
+          </tr>
+        ))}
+    </tbody>
+  )
 }
 
 
