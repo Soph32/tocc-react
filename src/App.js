@@ -10,11 +10,12 @@ function App() {
   const [sussexData, setSussexData] = useState([]);
   const [norfolkData, setNorfolkData] = useState([]);
   const [yorkshireData, setYorkshireData] = useState([]);
-  const [data, setData] = useState([]);
+
+  const [data, setData] = useState(null);
+  const [dataCopy, setDataCopy] = useState([]);
+  const [filter, setFilter] = useState({});
 
   // assuming here that the default view should show all area data, which can then be filtered on
-  // TODO: ideally this would be paginated to reduce initial loading time
-  // TODO: refactor with custom fetch hook to reduce repetitive code - or promise all?
   useEffect(() => {
     // initial street crime data setup
     const fetchWalesStreetCrimeData = async() => {
@@ -92,24 +93,30 @@ function App() {
       fetchYorkshireStreetCrimeData()
     ])
     .then(
-      data => setData([...data[0], ...data[1], ...data[2], ...data[3]])
+      data => setDataCopy([...data[0], ...data[1], ...data[2], ...data[3]])
     );
 
-  }, []);
+    setData(dataCopy);
+
+  }, [dataCopy]);
 
 
-  const [dataCopy, setDataCopy] = useState(null);
+
   function handleChange(e) {
-    setDataCopy(data.map(row => {return {...row}}));
-
-    if (e.office) {
-      officeChange(e.office.toLowerCase());
-    }
-
-    if (e.date){
-      dateChange(e.date);
-    }
+    setFilter(e);
   }
+
+  // on filter changes
+  useEffect(() => {
+      if (filter.office) {
+        officeChange(filter.office.toLowerCase());
+      }
+  
+      if (filter.date){
+        dateChange(filter.date);
+      }
+  }, [dataCopy, filter]);
+
 
   function officeChange(office) {
     switch (office) {
@@ -129,7 +136,7 @@ function App() {
         setData(yorkshireData);
         break;
       default: 
-        setData([...walseData, ...norfolkData, ...sussexData, ...yorkshireData]);
+      setData([...walseData, ...norfolkData, ...sussexData, ...yorkshireData]);
         break;
     }
   }
@@ -148,17 +155,25 @@ function App() {
 }
 
 function Filters({handleChange}) {
-  const currentDate = new Date();
-  const currentYearMonth = currentDate.getFullYear() + "-" + ('0' + (currentDate.getMonth()+1)).slice(-2);
-  const [date, setDate] = useState(currentYearMonth);
+  const [date, setDate] = useState("");
+
+  let filters  = {};
 
   function handleOfficeChange(event) {
-    handleChange({office: event.target.value});
+    filters["office"] = event.target.value;
+    handleFilterChange();
+    // handleChange({office: event.target.value});
   }
 
   function handleDateChange(event) {
-    handleChange({date: event.target.value});
+    // handleChange({date: event.target.value});
+    filters["date"] = event.target.value;
     setDate(event.target.value);
+    handleFilterChange();
+  }
+
+  function handleFilterChange() {
+    handleChange(filters);
   }
 
   return (
@@ -169,7 +184,7 @@ function Filters({handleChange}) {
           <option value="all">All</option>
           <option value="wales">Wales</option>
           <option value="sussex">Sussex</option>
-          <option value="norfolk">Norflok</option>
+          <option value="norfolk">Norfolk</option>
           <option value="yorkshire">Yorkshire</option>
         </select>
       </label>
