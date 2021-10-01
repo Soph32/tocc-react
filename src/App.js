@@ -6,19 +6,17 @@ function App() {
   // keeping these top level as they're used in multiple funcs, if the endpoints ever change they will only need to be changed once here
   const streetCrimesEndpoint = "https://data.police.uk/api/crimes-street/all-crime";  // https://data.police.uk/api/crimes-street/all-crime?lat=[lat]&lng=[long]
 
-  const [walesCrime, setWalesCrime] = useState(null);
-  const [sussexCrime, setSussexCrime] = useState(null);
-  const [norfolkCrime, setNorfolkCrime] = useState(null);
-  const [yorkshireCrime, setYorkshireCrime] = useState(null);
-
-  let allCrime = [];
+  const [walseData, setWalesData] = useState([]);
+  const [sussexData, setSussexData] = useState([]);
+  const [norfolkData, setNorfolkData] = useState([]);
+  const [yorkshireData, setYorkshireData] = useState([]);
+  const [data, setData] = useState([]);
 
   // assuming here that the default view should show all area data, which can then be filtered on
   // TODO: ideally this would be paginated to reduce initial loading time
   // TODO: refactor with custom fetch hook to reduce repetitive code - or promise all?
-  // TODO: is there a way of pulling only the fields we need from the json so less data is stored here?
   useEffect(() => {
-    // grabs all street crime data on component mount
+    // initial street crime data setup
     const fetchWalesStreetCrimeData = async() => {
       try {
         const response = await fetch(streetCrimesEndpoint + "?lat=52.515249&lng=-3.316378");
@@ -28,7 +26,8 @@ function App() {
           crime["office"] = "Wales";
         });
 
-        setWalesCrime(json);
+        setWalesData(json);
+        return json;
 
       } catch(error) {
         console.log("Error fetching Wales street crime data: ", error);
@@ -44,7 +43,8 @@ function App() {
           crime["office"] = "Sussex";
         });
 
-        setSussexCrime(json);
+        setSussexData(json);
+        return json;
 
       } catch(error) {
         console.log("Error fetching Sussex street crime data: ", error);
@@ -60,7 +60,8 @@ function App() {
           crime["office"] = "Norfolk";
         });
 
-        setNorfolkCrime(json);
+        setNorfolkData(json);
+        return json;
         
       } catch(error) {
         console.log("Error fetching Norfolk street crime data: ", error);
@@ -76,44 +77,79 @@ function App() {
           crime["office"] = "Yorkshire";
         });
 
-        setYorkshireCrime(json);
+        setYorkshireData(json);
+        return json;
         
       } catch(error) {
         console.log("Error fetching Yorkshire street crime data: ", error);
       }
     };
 
-    fetchWalesStreetCrimeData();
-    fetchSussexStreetCrimeData();
-    fetchNorfolkStreetCrimeData();
-    fetchYorkshireStreetCrimeData();
+    Promise.all([
+      fetchWalesStreetCrimeData(),
+      fetchSussexStreetCrimeData(),
+      fetchNorfolkStreetCrimeData(),
+      fetchYorkshireStreetCrimeData()
+    ])
+    .then(
+      data => setData([...data[0], ...data[1], ...data[2], ...data[3]])
+    );
 
   }, []);
 
-  // merge individual location data for master table
-  if (walesCrime && sussexCrime && norfolkCrime && yorkshireCrime) {
-    allCrime = [...walesCrime, ...sussexCrime, ...norfolkCrime, ...yorkshireCrime];
-  }
-    
-  // only possible to filter on dates that actually exist
-  // function dateOptions() {
-  //   let dates = [];
-    
-  //   allCrime.forEach(item => {
-  //     dates.push(item.date);
-  //   });
 
-  //   let uniqeDates = [...new Set(dates)];
-  //   return uniqeDates;
-  // };
+  function handleChange(e) {
+    switch (e.toLowerCase()) {
+      case "all":
+        setData([...walseData, ...norfolkData, ...sussexData, ...yorkshireData]);
+        break;
+      case "wales":
+        setData(walseData);
+        break;
+      case "sussex":
+        setData(sussexData);
+        break;
+      case "norfolk":
+        setData(norfolkData);
+        break;
+      case "yorkshire":
+        setData(yorkshireData);
+        break;
+      default: 
+        setData([...walseData, ...norfolkData, ...sussexData, ...yorkshireData]);
+        break;
+    }
+  }
 
   return (
     <div className="App">
-      <StreetCrimeTable streetCrimeData={allCrime}></StreetCrimeTable>
+      <Filters handleChange={handleChange}></Filters>
+      <StreetCrimeTable streetCrimeData={data}></StreetCrimeTable>
     </div>
   );
 }
 
+function Filters({handleChange}) {
+
+  function handleOfficeChange(event) {
+    handleChange(event.target.value);
+  }
+
+  return (
+    <div>
+      <label>
+        Office:
+        <select onChange={handleOfficeChange}>
+          <option value="all">All</option>
+          <option value="wales">Wales</option>
+          <option value="sussex">Sussex</option>
+          <option value="norfolk">Norflok</option>
+          <option value="yorkshire">Yorkshire</option>
+        </select>
+      </label>
+    </div>
+  )
+}
 
 function StreetCrimeTable({streetCrimeData}) {
   if (streetCrimeData) {
