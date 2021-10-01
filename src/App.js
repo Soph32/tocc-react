@@ -98,8 +98,21 @@ function App() {
   }, []);
 
 
+  const [dataCopy, setDataCopy] = useState(null);
   function handleChange(e) {
-    switch (e.toLowerCase()) {
+    setDataCopy(data.map(row => {return {...row}}));
+
+    if (e.office) {
+      officeChange(e.office.toLowerCase());
+    }
+
+    if (e.date){
+      dateChange(e.date);
+    }
+  }
+
+  function officeChange(office) {
+    switch (office) {
       case "all":
         setData([...walseData, ...norfolkData, ...sussexData, ...yorkshireData]);
         break;
@@ -121,6 +134,11 @@ function App() {
     }
   }
 
+  function dateChange(date) {
+    let filtered = dataCopy.filter(row => row.month === date);
+    setData(filtered);
+  }
+
   return (
     <div className="App">
       <Filters handleChange={handleChange}></Filters>
@@ -130,9 +148,17 @@ function App() {
 }
 
 function Filters({handleChange}) {
+  const currentDate = new Date();
+  const currentYearMonth = currentDate.getFullYear() + "-" + ('0' + (currentDate.getMonth()+1)).slice(-2);
+  const [date, setDate] = useState(currentYearMonth);
 
   function handleOfficeChange(event) {
-    handleChange(event.target.value);
+    handleChange({office: event.target.value});
+  }
+
+  function handleDateChange(event) {
+    handleChange({date: event.target.value});
+    setDate(event.target.value);
   }
 
   return (
@@ -146,6 +172,11 @@ function Filters({handleChange}) {
           <option value="norfolk">Norflok</option>
           <option value="yorkshire">Yorkshire</option>
         </select>
+      </label>
+
+      <label>
+        Date:
+        <input type="month" value={date} onChange={handleDateChange}></input>
       </label>
     </div>
   )
