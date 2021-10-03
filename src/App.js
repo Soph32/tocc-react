@@ -6,14 +6,14 @@ function App() {
   // keeping these top level as they're used in multiple funcs, if the endpoints ever change they will only need to be changed once here
   const streetCrimesEndpoint = "https://data.police.uk/api/crimes-street/all-crime";  // https://data.police.uk/api/crimes-street/all-crime?lat=[lat]&lng=[long]
 
-  const [walseData, setWalesData] = useState([]);
-  const [sussexData, setSussexData] = useState([]);
-  const [norfolkData, setNorfolkData] = useState([]);
-  const [yorkshireData, setYorkshireData] = useState([]);
+  // const [walseData, setWalesData] = useState([]);
+  // const [sussexData, setSussexData] = useState([]);
+  // const [norfolkData, setNorfolkData] = useState([]);
+  // const [yorkshireData, setYorkshireData] = useState([]);
 
   const [data, setData] = useState(null);
   const [dataCopy, setDataCopy] = useState([]);
-  const [filter, setFilter] = useState({});
+  const [filter, setFilter] = useState({office: "all", date: "2021-08"});
 
   // assuming here that the default view should show all area data, which can then be filtered on
   useEffect(() => {
@@ -27,7 +27,7 @@ function App() {
           crime["office"] = "Wales";
         });
 
-        setWalesData(json);
+        // setWalesData(json);
         return json;
 
       } catch(error) {
@@ -44,7 +44,7 @@ function App() {
           crime["office"] = "Sussex";
         });
 
-        setSussexData(json);
+        // setSussexData(json);
         return json;
 
       } catch(error) {
@@ -61,7 +61,7 @@ function App() {
           crime["office"] = "Norfolk";
         });
 
-        setNorfolkData(json);
+        // setNorfolkData(json);
         return json;
         
       } catch(error) {
@@ -78,7 +78,7 @@ function App() {
           crime["office"] = "Yorkshire";
         });
 
-        setYorkshireData(json);
+        // setYorkshireData(json);
         return json;
         
       } catch(error) {
@@ -93,80 +93,60 @@ function App() {
       fetchYorkshireStreetCrimeData()
     ])
     .then(
-      data => setDataCopy([...data[0], ...data[1], ...data[2], ...data[3]])
+      function(data) {
+        setData([...data[0], ...data[1], ...data[2], ...data[3]]);
+        setDataCopy([...data[0], ...data[1], ...data[2], ...data[3]]);
+      }
     );
 
-    setData(dataCopy);
-
-  }, [dataCopy]);
+  }, []);
 
 
 
   function handleChange(e) {
-    setFilter(e);
+    setFilter({office: e.office, date: e.date});
   }
 
-  // on filter changes
+  // runs on filter changes
   useEffect(() => {
-      if (filter.office) {
-        officeChange(filter.office.toLowerCase());
-      }
-  
-      if (filter.date){
-        dateChange(filter.date);
-      }
-  }, [dataCopy, filter]);
+    let filteredData;
 
-
-  function officeChange(office) {
-    switch (office) {
-      case "all":
-        setData([...walseData, ...norfolkData, ...sussexData, ...yorkshireData]);
-        break;
-      case "wales":
-        setData(walseData);
-        break;
-      case "sussex":
-        setData(sussexData);
-        break;
-      case "norfolk":
-        setData(norfolkData);
-        break;
-      case "yorkshire":
-        setData(yorkshireData);
-        break;
-      default: 
-      setData([...walseData, ...norfolkData, ...sussexData, ...yorkshireData]);
-        break;
+    if (filter.office === "all") {
+      filteredData = dataCopy.filter(row => 
+        row.month === filter.date 
+      );
+    } else {
+      filteredData = dataCopy.filter(row => 
+        row.office.toLowerCase() === filter.office && 
+        row.month === filter.date 
+      );
     }
-  }
+    
+    setData(filteredData);
 
-  function dateChange(date) {
-    let filtered = dataCopy.filter(row => row.month === date);
-    setData(filtered);
-  }
+  }, [filter]);
+
 
   return (
     <div className="App">
-      <Filters handleChange={handleChange}></Filters>
+      <Filters handleChange={handleChange} filterState={filter}></Filters>
       <StreetCrimeTable streetCrimeData={data}></StreetCrimeTable>
     </div>
   );
 }
 
-function Filters({handleChange}) {
+// street crime data table filters
+function Filters({handleChange, filterState}) {
   const [date, setDate] = useState("");
 
-  let filters  = {};
+  let filters = filterState;
 
   function handleOfficeChange(event) {
     filters["office"] = event.target.value;
     handleFilterChange();
-    // handleChange({office: event.target.value});
   }
 
   function handleDateChange(event) {
-    // handleChange({date: event.target.value});
     filters["date"] = event.target.value;
     setDate(event.target.value);
     handleFilterChange();
@@ -197,6 +177,7 @@ function Filters({handleChange}) {
   )
 }
 
+// table format for street crime data
 function StreetCrimeTable({streetCrimeData}) {
   if (streetCrimeData) {
     return (
@@ -220,6 +201,7 @@ function StreetCrimeTable({streetCrimeData}) {
   }
 }
 
+// data rows for street crime data table
 function TableRow({data}) {
   return (
     <tbody>
