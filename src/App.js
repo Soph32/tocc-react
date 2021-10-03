@@ -8,7 +8,7 @@ function App() {
 
   const [data, setData] = useState(null);
   const [dataCopy, setDataCopy] = useState([]);
-  const [filter, setFilter] = useState({office: "all", category: "all", date: "2021-08"});
+  const [filter, setFilter] = useState({office: "all", category: "all", location: "", date: "2021-08"});
 
   // assuming here that the default view should show all area data, which can then be filtered on
   useEffect(() => {
@@ -94,7 +94,7 @@ function App() {
 
 
   function handleChange(e) {
-    setFilter({office: e.office, category: e.category, date: e.date});
+    setFilter({office: e.office, category: e.category, location: e.location, date: e.date});
   }
 
   // runs on filter changes
@@ -104,7 +104,8 @@ function App() {
     filteredData = dataCopy.filter(row => 
       (filter.office !== "all" ? row.office.toLowerCase() === filter.office : row) && 
       row.month === filter.date &&
-      (filter.category !== "all" ? row.category === filter.category : row)
+      (filter.category !== "all" ? row.category === filter.category : row) &&
+      (filter.location !== "" ? row.location.street.name.toLowerCase().includes(filter.location) : row)
     );
     
     setData(filteredData);
@@ -164,6 +165,11 @@ function Filters({handleChange, filterState, categories}) {
     handleFilterChange();
   }
 
+  function handleLocationSearch(event) {
+    filters["location"] = event.target.value;
+    handleFilterChange();
+  }
+
   function handleFilterChange() {
     handleChange(filters);
   }
@@ -189,6 +195,11 @@ function Filters({handleChange, filterState, categories}) {
             <option key={item} value={item}>{item}</option>
           ))}
         </select>
+      </label>
+
+      <label>
+        Location:
+        <input type="text" value={filters.location} onChange={handleLocationSearch}></input>
       </label>
 
       <label>
