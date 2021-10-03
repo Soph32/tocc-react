@@ -6,14 +6,9 @@ function App() {
   // keeping these top level as they're used in multiple funcs, if the endpoints ever change they will only need to be changed once here
   const streetCrimesEndpoint = "https://data.police.uk/api/crimes-street/all-crime";  // https://data.police.uk/api/crimes-street/all-crime?lat=[lat]&lng=[long]
 
-  // const [walseData, setWalesData] = useState([]);
-  // const [sussexData, setSussexData] = useState([]);
-  // const [norfolkData, setNorfolkData] = useState([]);
-  // const [yorkshireData, setYorkshireData] = useState([]);
-
   const [data, setData] = useState(null);
   const [dataCopy, setDataCopy] = useState([]);
-  const [filter, setFilter] = useState({office: "all", date: "2021-08"});
+  const [filter, setFilter] = useState({office: "all", category: "all", date: "2021-08"});
 
   // assuming here that the default view should show all area data, which can then be filtered on
   useEffect(() => {
@@ -27,7 +22,6 @@ function App() {
           crime["office"] = "Wales";
         });
 
-        // setWalesData(json);
         return json;
 
       } catch(error) {
@@ -44,7 +38,6 @@ function App() {
           crime["office"] = "Sussex";
         });
 
-        // setSussexData(json);
         return json;
 
       } catch(error) {
@@ -61,7 +54,6 @@ function App() {
           crime["office"] = "Norfolk";
         });
 
-        // setNorfolkData(json);
         return json;
         
       } catch(error) {
@@ -78,7 +70,6 @@ function App() {
           crime["office"] = "Yorkshire";
         });
 
-        // setYorkshireData(json);
         return json;
         
       } catch(error) {
@@ -94,49 +85,65 @@ function App() {
     ])
     .then(
       function(data) {
-        setData([...data[0], ...data[1], ...data[2], ...data[3]]);
-        setDataCopy([...data[0], ...data[1], ...data[2], ...data[3]]);
+        setData([...data[0], ...data[1], ...data[2], ...data[3]]);      // filtered data to be passed to table rows
+        setDataCopy([...data[0], ...data[1], ...data[2], ...data[3]]);  // full data to be filtered each time
       }
     );
 
   }, []);
 
 
-
   function handleChange(e) {
-    setFilter({office: e.office, date: e.date});
+    setFilter({office: e.office, category: e.category, date: e.date});
   }
 
   // runs on filter changes
   useEffect(() => {
     let filteredData;
 
-    if (filter.office === "all") {
-      filteredData = dataCopy.filter(row => 
-        row.month === filter.date 
-      );
-    } else {
-      filteredData = dataCopy.filter(row => 
-        row.office.toLowerCase() === filter.office && 
-        row.month === filter.date 
-      );
-    }
+    filteredData = dataCopy.filter(row => 
+      (filter.office !== "all" ? row.office.toLowerCase() === filter.office : row) && 
+      row.month === filter.date &&
+      (filter.category !== "all" ? row.category === filter.category : row)
+    );
     
     setData(filteredData);
 
   }, [filter]);
 
 
+  // getting possible values for select filers
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    if (dataCopy) { 
+      getCategoriesAvailable(dataCopy);
+    }
+  }, [dataCopy]);
+  
+
+  function getCategoriesAvailable(data) {
+    let categoriesAvailable = [];
+
+    data.forEach(item => {
+      categoriesAvailable.push(item.category);
+    });
+    categoriesAvailable = [...new Set(categoriesAvailable)];
+
+    setCategories(categoriesAvailable);
+  }
+
+
   return (
     <div className="App">
-      <Filters handleChange={handleChange} filterState={filter}></Filters>
+      <Filters handleChange={handleChange} filterState={filter} categories={categories}></Filters>
       <StreetCrimeTable streetCrimeData={data}></StreetCrimeTable>
     </div>
   );
 }
 
 // street crime data table filters
-function Filters({handleChange, filterState}) {
+function Filters({handleChange, filterState, categories}) {
   const [date, setDate] = useState("");
 
   let filters = filterState;
@@ -148,7 +155,12 @@ function Filters({handleChange, filterState}) {
 
   function handleDateChange(event) {
     filters["date"] = event.target.value;
-    setDate(event.target.value);
+    setDate(event.target.value); // refactor this - not neccessary?
+    handleFilterChange();
+  }
+
+  function handleCategoryChange(event) {
+    filters["category"] = event.target.value;
     handleFilterChange();
   }
 
@@ -166,6 +178,16 @@ function Filters({handleChange, filterState}) {
           <option value="sussex">Sussex</option>
           <option value="norfolk">Norfolk</option>
           <option value="yorkshire">Yorkshire</option>
+        </select>
+      </label>
+
+      <label>
+        Category:
+        <select onChange={handleCategoryChange}>
+          <option value="all">All</option>
+          {categories.map(item => (
+            <option key={item} value={item}>{item}</option>
+          ))}
         </select>
       </label>
 
