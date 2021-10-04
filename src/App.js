@@ -8,7 +8,7 @@ function App() {
 
   const [data, setData] = useState(null);
   const [dataCopy, setDataCopy] = useState([]);
-  const [filter, setFilter] = useState({office: "all", category: "all", location: "", date: "2021-08"});
+  const [filter, setFilter] = useState({office: "all", category: "all", location: "", outcome: "all", date: "2021-08"});
 
   // assuming here that the default view should show all area data, which can then be filtered on
   useEffect(() => {
@@ -94,20 +94,23 @@ function App() {
 
 
   function handleChange(e) {
-    setFilter({office: e.office, category: e.category, location: e.location, date: e.date});
+    setFilter({office: e.office, category: e.category, location: e.location, outcome: e.outcome, date: e.date});
   }
 
   // runs on filter changes
   useEffect(() => {
     let filteredData;
 
+    console.log(filter.outcome);
     filteredData = dataCopy.filter(row => 
       (filter.office !== "all" ? row.office.toLowerCase() === filter.office : row) && 
       row.month === filter.date &&
       (filter.category !== "all" ? row.category === filter.category : row) &&
-      (filter.location !== "" ? row.location.street.name.toLowerCase().includes(filter.location) : row)
+      (filter.location !== "" ? row.location.street.name.toLowerCase().includes(filter.location) : row) &&
+      (filter.outcome !== "all" ? (filter.outcome === "N/A" ? !row.outcome_status : (row.outcome_status ? row.outcome_status.category === filter.outcome : false)) : row) // this is ugly but it works...refactor
     );
     
+    console.log(filteredData);
     setData(filteredData);
 
   }, [filter]);
@@ -115,10 +118,12 @@ function App() {
 
   // getting possible values for select filers
   const [categories, setCategories] = useState([]);
+  const [outcomes, setOutcomes] = useState([]);
 
   useEffect(() => {
     if (dataCopy) { 
       getCategoriesAvailable(dataCopy);
+      getOutcomesAvailable(dataCopy);
     }
   }, [dataCopy]);
   
@@ -134,17 +139,32 @@ function App() {
     setCategories(categoriesAvailable);
   }
 
+  function getOutcomesAvailable(data) {
+    let outcomesAvailable = [];
+ 
+    data.forEach(item => {
+      if (item.outcome_status) {
+        outcomesAvailable.push(item.outcome_status.category);
+      } else {
+        outcomesAvailable.push("N/A");
+      }
+    });
+    outcomesAvailable = [...new Set(outcomesAvailable)];
+
+    setOutcomes(outcomesAvailable);
+  }
+
 
   return (
     <div className="App">
-      <Filters handleChange={handleChange} filterState={filter} categories={categories}></Filters>
+      <Filters handleChange={handleChange} filterState={filter} categories={categories} outcomes={outcomes}></Filters>
       <StreetCrimeTable streetCrimeData={data}></StreetCrimeTable>
     </div>
   );
 }
 
 // street crime data table filters
-function Filters({handleChange, filterState, categories}) {
+function Filters({handleChange, filterState, categories, outcomes}) {
   const [date, setDate] = useState("");
 
   let filters = filterState;
@@ -167,6 +187,11 @@ function Filters({handleChange, filterState, categories}) {
 
   function handleLocationSearch(event) {
     filters["location"] = event.target.value;
+    handleFilterChange();
+  }
+
+  function handleOutcomeChange(event) {
+    filters["outcome"] = event.target.value;
     handleFilterChange();
   }
 
@@ -200,6 +225,16 @@ function Filters({handleChange, filterState, categories}) {
       <label>
         Location:
         <input type="text" value={filters.location} onChange={handleLocationSearch}></input>
+      </label>
+
+      <label>
+        Outcome:
+        <select onChange={handleOutcomeChange}>
+          <option value="all">All</option>
+          {outcomes.map(item => (
+            <option key={item} value={item}>{item}</option>
+          ))}
+        </select>
       </label>
 
       <label>
