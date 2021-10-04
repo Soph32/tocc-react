@@ -101,7 +101,6 @@ function App() {
   useEffect(() => {
     let filteredData;
 
-    console.log(filter.outcome);
     filteredData = dataCopy.filter(row => 
       (filter.office !== "all" ? row.office.toLowerCase() === filter.office : row) && 
       row.month === filter.date &&
@@ -110,7 +109,6 @@ function App() {
       (filter.outcome !== "all" ? (filter.outcome === "N/A" ? !row.outcome_status : (row.outcome_status ? row.outcome_status.category === filter.outcome : false)) : row) // this is ugly but it works...refactor
     );
     
-    console.log(filteredData);
     setData(filteredData);
 
   }, [filter]);
