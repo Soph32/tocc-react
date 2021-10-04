@@ -154,7 +154,8 @@ function App() {
 
 
   return (
-    <div className="App">
+    <div className="app">
+      <h1>Street Crime Data</h1>
       <Filters handleChange={handleChange} filterState={filter} categories={categories} outcomes={outcomes}></Filters>
       <StreetCrimeTable streetCrimeData={data}></StreetCrimeTable>
     </div>
@@ -198,10 +199,10 @@ function Filters({handleChange, filterState, categories, outcomes}) {
   }
 
   return (
-    <div>
-      <label>
+    <div className="filters">
+      <label className="filter-label">
         Office:
-        <select onChange={handleOfficeChange}>
+        <select className="filter-option" onChange={handleOfficeChange}>
           <option value="all">All</option>
           <option value="wales">Wales</option>
           <option value="sussex">Sussex</option>
@@ -210,9 +211,9 @@ function Filters({handleChange, filterState, categories, outcomes}) {
         </select>
       </label>
 
-      <label>
+      <label className="filter-label">
         Category:
-        <select onChange={handleCategoryChange}>
+        <select className="filter-option" onChange={handleCategoryChange}>
           <option value="all">All</option>
           {categories.map(item => (
             <option key={item} value={item}>{item}</option>
@@ -220,14 +221,14 @@ function Filters({handleChange, filterState, categories, outcomes}) {
         </select>
       </label>
 
-      <label>
+      <label className="filter-label">
         Location:
-        <input type="text" value={filters.location} onChange={handleLocationSearch}></input>
+        <input className="filter-option" type="text" value={filters.location} onChange={handleLocationSearch}></input>
       </label>
 
-      <label>
+      <label className="filter-label">
         Outcome:
-        <select onChange={handleOutcomeChange}>
+        <select className="filter-option" onChange={handleOutcomeChange}>
           <option value="all">All</option>
           {outcomes.map(item => (
             <option key={item} value={item}>{item}</option>
@@ -235,9 +236,9 @@ function Filters({handleChange, filterState, categories, outcomes}) {
         </select>
       </label>
 
-      <label>
+      <label className="filter-label">
         Date:
-        <input type="month" value={date} onChange={handleDateChange}></input>
+        <input className="filter-option" type="month" value={date} onChange={handleDateChange}></input>
       </label>
     </div>
   )

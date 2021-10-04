@@ -1,38 +1,60 @@
-.App {
+h1 {
+  letter-spacing: 1px;
+  font-size: 3rem;
+  font-weight: 400;
+}
+
+table {
+  margin: auto;
+  text-align: left;
+  width: 100%;
+}
+
+thead {
+  background-color: #215c76;
+  color: white;
+  font-size: 1.2rem;
+}
+
+th {
+  padding: 5px 8px;
+}
+
+tbody > tr {
+  border-bottom: 1px solid #215c76;
+}
+
+tbody > tr:nth-child(even) {
+  background-color: #215c761c;
+}
+
+td {
+  padding-left: 8px;
+}
+
+
+.app {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.filters {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 2rem;
+  text-align: left;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.filter-label {
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+  margin-top: 10px;
+  padding: 0 15px; 
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.filter-option {
+  font-size: 1rem;
+  margin-left: 10px;
+  padding: 3px;
 }
