@@ -58,3 +58,9 @@ td {
   margin-left: 10px;
   padding: 3px;
 }
+
+.fa {
+  background: none;
+  border: none;
+  color: white;
+}

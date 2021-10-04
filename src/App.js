@@ -20,6 +20,7 @@ function App() {
         
         json.forEach(crime => {
           crime["office"] = "Wales";
+          crime["outcome"] = crime.outcome_status ? crime.outcome_status.category : "N/A";
         });
 
         return json;
@@ -36,6 +37,7 @@ function App() {
         
         json.forEach(crime => {
           crime["office"] = "Sussex";
+          crime["outcome"] = crime.outcome_status ? crime.outcome_status.category : "N/A";
         });
 
         return json;
@@ -52,6 +54,7 @@ function App() {
 
         json.forEach(crime => {
           crime["office"] = "Norfolk";
+          crime["outcome"] = crime.outcome_status ? crime.outcome_status.category : "N/A";
         });
 
         return json;
@@ -68,6 +71,7 @@ function App() {
 
         json.forEach(crime => {
           crime["office"] = "Yorkshire";
+          crime["outcome"] = crime.outcome_status ? crime.outcome_status.category : "N/A";
         });
 
         return json;
@@ -106,7 +110,7 @@ function App() {
       row.month === filter.date &&
       (filter.category !== "all" ? row.category === filter.category : row) &&
       (filter.location !== "" ? row.location.street.name.toLowerCase().includes(filter.location) : row) &&
-      (filter.outcome !== "all" ? (filter.outcome === "N/A" ? !row.outcome_status : (row.outcome_status ? row.outcome_status.category === filter.outcome : false)) : row) // this is ugly but it works...refactor
+      (filter.outcome !== "all" ? row.outcome === filter.outcome : row) 
     );
     
     setData(filteredData);
@@ -141,8 +145,8 @@ function App() {
     let outcomesAvailable = [];
  
     data.forEach(item => {
-      if (item.outcome_status) {
-        outcomesAvailable.push(item.outcome_status.category);
+      if (item.outcome) {
+        outcomesAvailable.push(item.outcome);
       } else {
         outcomesAvailable.push("N/A");
       }
@@ -246,16 +250,68 @@ function Filters({handleChange, filterState, categories, outcomes}) {
 
 // table format for street crime data
 function StreetCrimeTable({streetCrimeData}) {
+  const [sortedField, setSortedField] = useState({field: null, ascending: true});
+
   if (streetCrimeData) {
+    let sortedData = [...streetCrimeData];
+
+    if (sortedField.field !== null) {
+      sortedData.sort((a, b) => {
+        let afields = a[sortedField.field];
+        let bfields = b[sortedField.field];
+
+        if(sortedField.field === "location") { 
+          afields = a[sortedField.field]["street"]["name"];
+          bfields = b[sortedField.field]["street"]["name"];
+        } 
+
+        if (!sortedField.ascending) {
+          if (afields < bfields) {
+            return -1;
+          }
+          if (afields > bfields) {
+            return 1;
+          }
+        } else {
+          if (afields > bfields) {
+            return -1;
+          }
+          if (afields < bfields) {
+            return 1;
+          }
+        }
+
+        return 0;
+      });
+    }
+
+    streetCrimeData = sortedData;
+
+
     return (
       <table>
         <thead>
           <tr>
-            <th>Office</th>
-            <th>Category</th>
-            <th>Location</th>
-            <th>Outcome</th>
-            <th>Month</th>
+            <th>
+              Office
+              <button class="fa fa-sort" onClick={() => setSortedField({field: "office", ascending: !sortedField.ascending})}></button>
+            </th>
+            <th>
+              Category
+              <button class="fa fa-sort" onClick={() => setSortedField({field: "category", ascending: !sortedField.ascending})}></button>
+            </th>
+            <th>
+              Location
+              <button class="fa fa-sort" onClick={() => setSortedField({field: "location", ascending: !sortedField.ascending})}></button>  
+            </th>
+            <th>
+              Outcome
+              <button class="fa fa-sort" onClick={() => setSortedField({field: "outcome", ascending: !sortedField.ascending})}></button>
+            </th>
+            <th>
+              Month
+              <button class="fa fa-sort" onClick={() => setSortedField({field: "month", ascending: !sortedField.ascending})}></button>
+            </th>
           </tr>
         </thead>
         <TableRow data={streetCrimeData}></TableRow>
@@ -277,7 +333,7 @@ function TableRow({data}) {
             <td>{item.office}</td>
             <td>{item.category}</td>
             <td>{item.location.street.name}</td>
-            <td>{item.outcome_status ? item.outcome_status.category : "N/A"}</td>
+            <td>{item.outcome}</td>
             <td>{item.month}</td>
           </tr>
         ))}
