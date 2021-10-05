@@ -3,19 +3,24 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
+  const currentDate = new Date();
+  let latestMonth = currentDate.getFullYear() + "-" + (("0" + (parseInt(currentDate.getMonth())-1)).slice(-2)); // specifially set to two months prior to current month as data isn't availble for current or previous month
+
   // keeping these top level as they're used in multiple funcs, if the endpoints ever change they will only need to be changed once here
-  const streetCrimesEndpoint = "https://data.police.uk/api/crimes-street/all-crime";  // https://data.police.uk/api/crimes-street/all-crime?lat=[lat]&lng=[long]
+  const streetCrimesEndpoint = "https://data.police.uk/api/crimes-street/all-crime";  // https://data.police.uk/api/crimes-street/all-crime?lat=[lat]&lng=[long]&date=[yyyy-mm](optional)
 
   const [data, setData] = useState(null);
   const [dataCopy, setDataCopy] = useState([]);
-  const [filter, setFilter] = useState({office: "all", category: "all", location: "", outcome: "all", date: "2021-08"});
+  const [filter, setFilter] = useState({office: "all", category: "all", location: "", outcome: "all", date: latestMonth});
 
-  // assuming here that the default view should show all area data, which can then be filtered on
+
+  // runs on initial street crime data setup and when month is changed
   useEffect(() => {
-    // initial street crime data setup
-    const fetchWalesStreetCrimeData = async() => {
+    const fetchWalesStreetCrimeData = async(date) => {
       try {
-        const response = await fetch(streetCrimesEndpoint + "?lat=52.515249&lng=-3.316378");
+        let url = streetCrimesEndpoint + "?lat=52.515249&lng=-3.316378&date=" + date;
+
+        const response = await fetch(url);
         const json = await response.json();
         
         json.forEach(crime => {
@@ -30,9 +35,11 @@ function App() {
       }
     };
 
-    const fetchSussexStreetCrimeData = async() => {
+    const fetchSussexStreetCrimeData = async(date) => {
       try {
-        const response = await fetch(streetCrimesEndpoint + "?lat=50.827741&lng=-0.138776");
+        let url = streetCrimesEndpoint + "?lat=50.827741&lng=-0.138776&date=" + date;
+
+        const response = await fetch(url);
         const json = await response.json();
         
         json.forEach(crime => {
@@ -47,9 +54,11 @@ function App() {
       }
     };
 
-    const fetchNorfolkStreetCrimeData = async() => {
+    const fetchNorfolkStreetCrimeData = async(date) => {
       try {
-        const response = await fetch(streetCrimesEndpoint + "?lat=52.906099&lng=1.088307");
+        let url = streetCrimesEndpoint + "?lat=52.906099&lng=1.088307&date=" + date;
+
+        const response = await fetch(url);
         const json = await response.json();
 
         json.forEach(crime => {
@@ -64,9 +73,11 @@ function App() {
       }
     };
 
-    const fetchYorkshireStreetCrimeData = async() => {
+    const fetchYorkshireStreetCrimeData = async(date) => {
       try {
-        const response = await fetch(streetCrimesEndpoint + "?lat=54.486599&lng=-0.615556");
+        let url = streetCrimesEndpoint + "?lat=54.486599&lng=-0.615556&date=" + filter.date;
+
+        const response = await fetch(url);
         const json = await response.json();
 
         json.forEach(crime => {
@@ -82,19 +93,22 @@ function App() {
     };
 
     Promise.all([
-      fetchWalesStreetCrimeData(),
-      fetchSussexStreetCrimeData(),
-      fetchNorfolkStreetCrimeData(),
-      fetchYorkshireStreetCrimeData()
+      fetchWalesStreetCrimeData(filter.date),
+      fetchSussexStreetCrimeData(filter.date),
+      fetchNorfolkStreetCrimeData(filter.date),
+      fetchYorkshireStreetCrimeData(filter.date)
     ])
     .then(
       function(data) {
         setData([...data[0], ...data[1], ...data[2], ...data[3]]);      // filtered data to be passed to table rows
         setDataCopy([...data[0], ...data[1], ...data[2], ...data[3]]);  // full data to be filtered each time
+
+        // setting filters to avoid bug where you try to filter but it thinks you're already viewing that data because this hasn't been updated - allows for date to be chnaged on filtered data
+        setFilter({office: filter.office, category: filter.category, location: filter.location, outcome: filter.outcome, date: filter.date}); 
       }
     );
 
-  }, []);
+  }, [filter.date]);
 
 
   function handleChange(e) {
@@ -107,7 +121,6 @@ function App() {
 
     filteredData = dataCopy.filter(row => 
       (filter.office !== "all" ? row.office.toLowerCase() === filter.office : row) && 
-      row.month === filter.date &&
       (filter.category !== "all" ? row.category === filter.category : row) &&
       (filter.location !== "" ? row.location.street.name.toLowerCase().includes(filter.location) : row) &&
       (filter.outcome !== "all" ? row.outcome === filter.outcome : row) 
@@ -294,23 +307,23 @@ function StreetCrimeTable({streetCrimeData}) {
           <tr>
             <th>
               Office
-              <button class="fa fa-sort" onClick={() => setSortedField({field: "office", ascending: !sortedField.ascending})}></button>
+              <button className="fa fa-sort" onClick={() => setSortedField({field: "office", ascending: !sortedField.ascending})}></button>
             </th>
             <th>
               Category
-              <button class="fa fa-sort" onClick={() => setSortedField({field: "category", ascending: !sortedField.ascending})}></button>
+              <button className="fa fa-sort" onClick={() => setSortedField({field: "category", ascending: !sortedField.ascending})}></button>
             </th>
             <th>
               Location
-              <button class="fa fa-sort" onClick={() => setSortedField({field: "location", ascending: !sortedField.ascending})}></button>  
+              <button className="fa fa-sort" onClick={() => setSortedField({field: "location", ascending: !sortedField.ascending})}></button>  
             </th>
             <th>
               Outcome
-              <button class="fa fa-sort" onClick={() => setSortedField({field: "outcome", ascending: !sortedField.ascending})}></button>
+              <button className="fa fa-sort" onClick={() => setSortedField({field: "outcome", ascending: !sortedField.ascending})}></button>
             </th>
             <th>
               Month
-              <button class="fa fa-sort" onClick={() => setSortedField({field: "month", ascending: !sortedField.ascending})}></button>
+              <button className="fa fa-sort" onClick={() => setSortedField({field: "month", ascending: !sortedField.ascending})}></button>
             </th>
           </tr>
         </thead>
